@@ -36,6 +36,9 @@ public class Main {
 
     public Main(){
         file=new File("/home/cordercorder/java/data.in");
+        for(int i=0;i<language.length;i++){
+            count.put(language[i],0);
+        }
 
         try {
             reader=new BufferedReader(new FileReader(file));
@@ -46,13 +49,9 @@ public class Main {
 
     }
 
-
     @RequestMapping("/index")
 
     public String index(ModelMap model){
-        for(int i=0;i<language.length;i++){
-            count.put(language[i],0);
-        }
         String data=null;
         String lan;
         int sum=0,pos;
