@@ -2,8 +2,7 @@ package com.example.demo.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -52,7 +51,12 @@ public class Main {
     @RequestMapping("/index")
 
     public String index(ModelMap model){
-        String data=null;
+
+        return "index/index";
+    }
+
+    public void ReadData(){
+        String data;
         String lan;
         int sum=0,pos;
         int cnt;
@@ -73,13 +77,14 @@ public class Main {
         }
 
         System.out.println("okokokokokok");
-
-        return "index/index";
     }
 
-    @RequestMapping("/index/jsondata")
+    @RequestMapping(value = "/index/jsondata/{id}",method = RequestMethod.GET)
     @ResponseBody
-    public Map<String,Object> JsonData(){
+    public Map<String,Object> JsonData(@PathVariable("id") String id){
+        if(id.equals("refresh")){
+            ReadData();
+        }
         List<String> ls=new ArrayList<>();
         List<Integer> tot=new ArrayList<>();
         Map<String,Object> mp=new HashMap<String,Object>();
