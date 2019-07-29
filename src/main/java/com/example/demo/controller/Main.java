@@ -1,12 +1,12 @@
 package com.example.demo.controller;
 
+import com.example.demo.domain.DataTable;
+import com.example.demo.service.StormService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.util.*;
 
 /**
@@ -19,11 +19,12 @@ import java.util.*;
 @Controller
 public class Main {
 
-    File file;
+    @Autowired
+    private StormService stormService;
 
-    BufferedReader reader;
+    private final int block=18;
 
-    final int block=18;
+    private long CurrentId;
 
     String[] language=new String[]{"GNU C11","Clang++17 Diagnostics","GNU C++11","GNU C++14","GNU C++17",
             "MS C++","MS C++ 2017","Mono C#","D","Go","Haskell","Java 8","Kotlin","Ocaml","Delphi",
@@ -31,19 +32,12 @@ public class Main {
             "Scala","JavaScript","Node.js"
     };
 
-    Map<String,Integer> count=new HashMap<String,Integer>();
+    Map<String,Long> count=new HashMap<String,Long>();
 
     public Main(){
-        file=new File("/home/cordercorder/java/data.in");
-        for(int i=0;i<language.length;i++){
-            count.put(language[i],0);
-        }
 
-        try {
-            reader=new BufferedReader(new FileReader(file));
-        }
-        catch (Exception e){
-            e.printStackTrace();
+        for(int i=0;i<language.length;i++){
+            count.put(language[i],0L);
         }
 
     }
@@ -52,22 +46,36 @@ public class Main {
 
     public String index(ModelMap model){
 
+        CurrentId=stormService.MinSubmissionId();
+
+        System.out.println("id=="+CurrentId);
         return "index/index";
     }
 
+    @RequestMapping("/test/MinSubmissionIdJson")
+    @ResponseBody
+    public long TestConnection(){
+        return stormService.MinSubmissionId();
+    }
+
+    @RequestMapping("/test/DataQueryJson")
+    @ResponseBody
+    public DataTable TestConnection2(){
+        return stormService.RequestData(57900455);
+    }
+
     public void ReadData(){
-        String data;
-        String lan;
-        int sum=0,pos;
-        int cnt;
+        DataTable data;
+        String language;
+        long cnt;
+        int sum=0;
         try{
             while(sum<block){
-                data=reader.readLine();
+                data=stormService.RequestData(CurrentId++);
                 if(data!=null){
-                    pos=data.lastIndexOf(" ");
-                    lan=data.substring(0,pos);
-                    cnt=Integer.valueOf(data.substring(pos+1,data.length()));
-                    count.put(lan,cnt);
+                    cnt=data.getCount();
+                    language=data.getLanguage();
+                    count.put(language,cnt);
                     sum++;
                 }
             }
@@ -76,7 +84,7 @@ public class Main {
             e.printStackTrace();
         }
 
-        System.out.println("okokokokokok");
+        System.out.println("succeed read data from databases!");
     }
 
     @RequestMapping(value = "/index/jsondata/{id}",method = RequestMethod.GET)
@@ -86,7 +94,7 @@ public class Main {
             ReadData();
         }
         List<String> ls=new ArrayList<>();
-        List<Integer> tot=new ArrayList<>();
+        List<Long> tot=new ArrayList<>();
         Map<String,Object> mp=new HashMap<String,Object>();
         for(int i=0;i<language.length;i++){
             ls.add(language[i]);
@@ -99,9 +107,9 @@ public class Main {
 
     class Node{
         String language;
-        int count;
+        long count;
 
-        Node(String language,int count){
+        Node(String language,long count){
             this.language=language;
             this.count=count;
         }
@@ -132,7 +140,7 @@ public class Main {
 
         Map<String,Object> mp=new HashMap<String,Object>();
         List<String> res=new ArrayList<>();
-        List<Integer> rei=new ArrayList<>();
+        List<Long> rei=new ArrayList<>();
         for(int i=0;i<5;i++){
             res.add(ls.get(i).language);
             rei.add(ls.get(i).count);
